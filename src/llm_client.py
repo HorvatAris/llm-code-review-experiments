@@ -1,8 +1,9 @@
-from google import generativeai as genai
+from google import genai
+from google.genai import types
 from .config import GEMINI_KEY
 import time
 
-genai.configure(api_key=GEMINI_KEY)
+client = genai.Client(api_key=GEMINI_KEY)
 
 MAX_DIFF_LENGTH = 4000
 
@@ -23,13 +24,16 @@ def generate_pr_description(diff_text: str, max_tokens: int = 512) -> str:
     Provide a short, clear summary (4–6 sentences).
     """
 
-    response = genai.generate_text(
-        model="models/text-bison-001",
-        prompt=prompt,
-        temperature=0.2,
-        max_output_tokens=max_tokens
+    response = client.models.generate_content(
+        model="gemini-2.0-flash",
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            temperature=0.2,
+            max_output_tokens=max_tokens
+        )
     )
-    return response.result.strip()
+
+    return response.text.strip()
 
 
 def safe_generate(diff_text, retries=3, backoff=2):
